@@ -7,8 +7,9 @@ An interactive web map for visualizing book distribution activity across the Nas
 ```bash
 npm install
 npm run dev
-Then open: http://localhost:3000
 ```
+
+Then open: http://localhost:3000
 
 ## How to Use
 
