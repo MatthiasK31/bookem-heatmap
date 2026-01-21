@@ -23,6 +23,27 @@ export const zipCentroids: Record<string, { lat: number; lng: number }> = {
   '37220': { lat: 36.070, lng: -86.800 },
   '37228': { lat: 36.190, lng: -86.790 },
 
+  // Additional zips seen in sheets
+  '37027': { lat: 36.0063, lng: -86.7909 }, // Brentwood
+  '37029': { lat: 36.330, lng: -87.080 }, // Ashland City area
+  '37042': { lat: 36.5853, lng: -87.4186 }, // Clarksville
+  '37064': { lat: 35.9328, lng: -86.8788 }, // Franklin
+  '37066': { lat: 36.380, lng: -86.450 }, // Gallatin
+  '37067': { lat: 35.9121, lng: -86.7655 }, // Franklin
+  '37069': { lat: 36.030, lng: -86.920 }, // Brentwood PO boxes
+  '37082': { lat: 36.0953, lng: -87.1156 }, // Kingston Springs
+  '37091': { lat: 35.4596, lng: -86.7812 }, // Lewisburg
+  '37122': { lat: 36.1897, lng: -86.5023 }, // Mount Juliet
+  '37128': { lat: 35.8454, lng: -86.4867 }, // Murfreesboro
+  '37130': { lat: 35.8478, lng: -86.3647 }, // Murfreesboro
+  '37135': { lat: 35.9307, lng: -86.6829 }, // Nolensville
+  '37146': { lat: 36.3783, lng: -87.0395 }, // Pleasant View
+  '37179': { lat: 35.8090, lng: -86.8913 }, // Thompsons Station
+  '37219': { lat: 36.1678, lng: -86.7837 }, // Nashville (downtown)
+  '37189': { lat: 36.260, lng: -87.040 }, // Whites Creek
+  '37917': { lat: 35.990, lng: -83.930 }, // Knoxville area (approx)
+  '47208': { lat: 39.060, lng: -85.920 }, // Indiana (approx)
+
   // Nearby zips often present in sheets
   '37013': { lat: 36.050, lng: -86.660 }, // Antioch
   '37076': { lat: 36.200, lng: -86.610 }, // Hermitage
@@ -35,4 +56,3 @@ export const zipCentroids: Record<string, { lat: number; lng: number }> = {
   '37072': { lat: 36.320, lng: -86.720 }, // Goodlettsville
   '37224': { lat: 36.240, lng: -86.790 },
 };
-

@@ -18,8 +18,7 @@ This app has been converted from Vite to Next.js (App Router) to enable SSR/SSG,
 - `tailwind.config.js` – Tailwind content globs updated for Next.js
 - `next.config.mjs` – Next.js configuration
 - `tsconfig.json`, `next-env.d.ts` – TypeScript configuration for Next.js
-
-The original Vite entry files (`index.html`, `src/index.tsx`) remain for reference but are no longer used by Next.js.
+- `legacy-vite/` – archived Vite starter files (not used by Next.js)
 
 ## Next Steps (Backend)
 
