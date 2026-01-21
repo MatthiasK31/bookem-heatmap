@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Circle, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import readXlsxFile from 'read-excel-file';
@@ -20,7 +20,7 @@ function fromEntriesSafe(entries: [string, unknown][]) {
 // Nashville coordinates
 const NASHVILLE_CENTER: [number, number] = [36.1627, -86.7816];
 
-type HeatPoint = { lat: number; lng: number; count: number };
+type HeatPoint = { lat: number; lng: number; count: number; zip: string };
 type CountByZip = Record<string, number>;
 
 type VolunteerMarker = { lat: number; lng: number; count: number; zip: string };
@@ -44,9 +44,9 @@ const hexToRgb = (hex: string) => {
 };
 
 const HEATMAP_GRADIENT = [
-  { stop: 0.0, color: hexToRgb('#A8E6A3') }, // light green
-  { stop: 0.5, color: hexToRgb('#F5E66A') }, // yellow
-  { stop: 1.0, color: hexToRgb('#E85C4A') }, // red
+  { stop: 0.0, color: hexToRgb('#35fc03') }, // bright green
+  { stop: 0.5, color: hexToRgb('#fcf803') }, // strong yellow
+  { stop: 1.0, color: hexToRgb('#fc0303') }, // bright red
 ];
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
@@ -476,7 +476,7 @@ export default function Map() {
       Object.entries(byZip).forEach(([zip, count]) => {
         const pos = zipToLatLng(zip);
         if (!pos) { missingBook.add(zip); return; }
-        points.push({ lat: pos.lat, lng: pos.lng, count });
+        points.push({ lat: pos.lat, lng: pos.lng, count, zip });
       });
       setHeatData(points);
     } else {
@@ -619,7 +619,7 @@ export default function Map() {
     Object.entries(byZip).forEach(([zip, count]) => {
       const pos = zipToLatLng(zip);
       if (!pos) { missing.add(zip); return; }
-      points.push({ lat: pos.lat, lng: pos.lng, count });
+      points.push({ lat: pos.lat, lng: pos.lng, count, zip });
     });
     setHeatData(points);
     setMissingBySource((prev) => ({
@@ -878,6 +878,22 @@ export default function Map() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
           <HeatmapOverlay data={heatData} show={showHeatmap} />
+          {showHeatmap &&
+            heatData.map((p, idx) => (
+              <Circle
+                key={`h-${idx}`}
+                center={[p.lat, p.lng]}
+                radius={HEAT_RADIUS_METERS}
+                pathOptions={{ color: 'transparent', fillColor: 'transparent', fillOpacity: 0, opacity: 0 }}
+              >
+                <Tooltip direction="top" offset={[0, -6]} opacity={1} sticky>
+                  <div className="text-xs text-slate-700">
+                    <div className="font-semibold">ZIP {p.zip}</div>
+                    <div>{p.count.toLocaleString()} books</div>
+                  </div>
+                </Tooltip>
+              </Circle>
+            ))}
           {showVolunteers &&
             volunteerMarkers.map((m, idx) => (
               <Marker key={`v-${idx}`} position={[m.lat, m.lng]} icon={volunteerIcon}>
