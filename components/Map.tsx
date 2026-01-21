@@ -23,7 +23,7 @@ const NASHVILLE_CENTER: [number, number] = [36.1627, -86.7816];
 type HeatPoint = { lat: number; lng: number; count: number };
 type CountByZip = Record<string, number>;
 
-type VolunteerMarker = { lat: number; lng: number; count: number };
+type VolunteerMarker = { lat: number; lng: number; count: number; zip: string };
 
 type SchoolPin = { lat: number; lng: number; label: string };
 
@@ -399,6 +399,13 @@ export default function Map() {
   const [volunteerMarkers, setVolunteerMarkers] = useState<VolunteerMarker[]>([]);
   const [schoolPins, setSchoolPins] = useState<SchoolPin[]>([]);
   const [unknownZips, setUnknownZips] = useState<string[]>([]);
+  const [missingBySource, setMissingBySource] = useState<{
+    bookData: string[];
+    volunteers: string[];
+  }>({
+    bookData: [],
+    volunteers: [],
+  });
   const [uploadedFiles, setUploadedFiles] = useState<{
     bookData: string | null;
     volunteers: string | null;
@@ -410,6 +417,13 @@ export default function Map() {
   });
   const [isProcessingSchools, setIsProcessingSchools] = useState(false);
   const [isZipWarningExpanded, setIsZipWarningExpanded] = useState(false);
+
+  useEffect(() => {
+    const combined = Array.from(
+      new Set([...missingBySource.bookData, ...missingBySource.volunteers])
+    ).sort();
+    setUnknownZips(combined);
+  }, [missingBySource]);
 
   const jitter = (lat: number, lng: number, meters: number) => {
     const dx = (Math.random() - 0.5) * 2 * meters; // east-west in meters
@@ -440,7 +454,8 @@ export default function Map() {
     volunteers: Record<string, unknown>[],
     schools: Record<string, unknown>[]
   ) => {
-    const missing: Set<string> = new Set();
+    const missingBook: Set<string> = new Set();
+    const missingVolunteers: Set<string> = new Set();
 
     // Recipients → heat points aggregated by ZIP
     if (recipients.length) {
@@ -460,7 +475,7 @@ export default function Map() {
       const points: HeatPoint[] = [];
       Object.entries(byZip).forEach(([zip, count]) => {
         const pos = zipToLatLng(zip);
-        if (!pos) { missing.add(zip); return; }
+        if (!pos) { missingBook.add(zip); return; }
         points.push({ lat: pos.lat, lng: pos.lng, count });
       });
       setHeatData(points);
@@ -486,8 +501,8 @@ export default function Map() {
       const markers: VolunteerMarker[] = [];
       Object.entries(byZip).forEach(([zip, count]) => {
         const pos = zipToLatLng(zip);
-        if (!pos) { missing.add(zip); return; }
-        markers.push({ lat: pos.lat, lng: pos.lng, count });
+        if (!pos) { missingVolunteers.add(zip); return; }
+        markers.push({ lat: pos.lat, lng: pos.lng, count, zip });
       });
       setVolunteerMarkers(markers);
     } else {
@@ -503,7 +518,10 @@ export default function Map() {
       setSchoolPins([]);
     }
 
-    setUnknownZips(Array.from(missing.values()).sort());
+    setMissingBySource({
+      bookData: Array.from(missingBook.values()).sort(),
+      volunteers: Array.from(missingVolunteers.values()).sort(),
+    });
   };
 
   async function handleWorkbook(file: File) {
@@ -578,7 +596,11 @@ export default function Map() {
 
   // Separate handlers for each category
   const processBookData = (recipients: Record<string, unknown>[]) => {
-    if (!recipients.length) return;
+    if (!recipients.length) {
+      setHeatData([]);
+      setMissingBySource((prev) => ({ ...prev, bookData: [] }));
+      return;
+    }
     const missing: Set<string> = new Set();
     const sample = recipients.find((r) => r && Object.keys(r).length > 0) || recipients[0];
     const zipKey = inferKey(sample, ['zip', 'zipcode', 'postal', 'postal code', 'zctas']);
@@ -600,12 +622,18 @@ export default function Map() {
       points.push({ lat: pos.lat, lng: pos.lng, count });
     });
     setHeatData(points);
-    // Update unknown zips, but merge with existing
-    setUnknownZips(prev => Array.from(new Set([...prev, ...Array.from(missing.values())])).sort());
+    setMissingBySource((prev) => ({
+      ...prev,
+      bookData: Array.from(missing.values()).sort(),
+    }));
   };
 
   const processVolunteers = (volunteers: Record<string, unknown>[]) => {
-    if (!volunteers.length) return;
+    if (!volunteers.length) {
+      setVolunteerMarkers([]);
+      setMissingBySource((prev) => ({ ...prev, volunteers: [] }));
+      return;
+    }
     const missing: Set<string> = new Set();
     const sample = volunteers.find((r) => r && Object.keys(r).length > 0) || volunteers[0];
     const zipKey = inferKey(sample, ['zip', 'zipcode', 'postal', 'postal code']);
@@ -624,10 +652,13 @@ export default function Map() {
     Object.entries(byZip).forEach(([zip, count]) => {
       const pos = zipToLatLng(zip);
       if (!pos) { missing.add(zip); return; }
-      markers.push({ lat: pos.lat, lng: pos.lng, count });
+      markers.push({ lat: pos.lat, lng: pos.lng, count, zip });
     });
     setVolunteerMarkers(markers);
-    setUnknownZips(prev => Array.from(new Set([...prev, ...Array.from(missing.values())])).sort());
+    setMissingBySource((prev) => ({
+      ...prev,
+      volunteers: Array.from(missing.values()).sort(),
+    }));
   };
 
   const processSchools = async (schools: Record<string, unknown>[]) => {
@@ -853,6 +884,7 @@ export default function Map() {
                 <Popup>
                   <div className="p-2">
                     <p className="text-sm text-gray-700">Volunteers in this area</p>
+                    <p className="text-xs text-gray-500">ZIP {m.zip}</p>
                     <p className="text-sm text-blue-600 font-semibold">{m.count}</p>
                   </div>
                 </Popup>

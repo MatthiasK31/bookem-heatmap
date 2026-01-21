@@ -1,41 +1,43 @@
-# Nashville Book Distribution Map – Next.js (App Router)
+# Nashville Book Distribution Map
 
-This app has been converted from Vite to Next.js (App Router) to enable SSR/SSG, built‑in API routes, and easier backend integration.
+An interactive web map for visualizing book distribution activity across the Nashville area. The app supports three layers: a book distribution heatmap, volunteer markers, and school markers.
 
-## Getting Started
+## Run Locally
 
-1. Install dependencies: `npm install`
-2. Start the dev server: `npm run dev`
-3. Open http://localhost:3000
+```bash
+npm install
+npm run dev
+Then open: http://localhost:3000
+```
 
-## Project Structure
+## How to Use
 
-- `app/` – App Router entrypoints
-  - `app/page.tsx` dynamically loads the Leaflet map as a client component
-  - `app/layout.tsx` provides the root layout and imports global styles
-- `components/Map.tsx` – Leaflet map, markers, and canvas heatmap
-- `app/globals.css` – Tailwind global styles
-- `tailwind.config.js` – Tailwind content globs updated for Next.js
-- `next.config.mjs` – Next.js configuration
-- `tsconfig.json`, `next-env.d.ts` – TypeScript configuration for Next.js
-- `legacy-vite/` – archived Vite starter files (not used by Next.js)
+- Upload data using the buttons in the top-left:
+  - Book Data
+  - Volunteers
+  - Schools
+- Toggle layers on/off from the controls at the top:
+  - Heat Map
+  - Volunteers
+  - Schools
+- Click markers to view details (counts by ZIP or location).
 
-## Next Steps (Backend)
+![Blank Map](./public/landing/blankmap.png)
 
-- Pick a backend: Firebase (fastest) or Supabase/PostGIS (best geospatial).
-- I can scaffold `app/api/*` routes and connect to your chosen backend.
+## Data Upload Format
 
-## Uploading Data (.xlsx or .csv)
+You can upload either:
 
-- Option 1: Upload a single Excel workbook (.xlsx) with three sheets named exactly:
-  - `Book Recipients` (columns like: `zipcode`, `# of books received`)
-  - `RIF Volunteers` (columns like: `zipcode`, `# of volunteers`)
-  - `RIF Schools` (columns like: `zipcode`, `# of schools`)
-- Option 2: Upload up to three CSVs exported from those sheets. Name them clearly (e.g., `Book Recipients.csv`, `RIF Volunteers.csv`, `RIF Schools.csv`) or include distinct columns; the app will auto-detect based on headers or filename.
+- One Excel workbook (.xlsx) containing three sheets named exactly:
+  - Book Recipients
+  - RIF Volunteers
+  - RIF Schools
+- OR up to three CSV files, one per dataset (filenames like `Book Recipients.csv`, `RIF Volunteers.csv`, `RIF Schools.csv` recommended).
 
-- The app parses the inputs client-side and updates:
-  - Heatmap from Book Recipients, using a fixed 0.5 mile diameter per point.
-  - Volunteer markers show the aggregated number per ZIP in the popup.
-  - School pins: one pin per school with a placeholder label so you can rename later.
+![Map view with data](./public/landing/fullmap.png)
 
-ZIP to lat/lng mapping comes from `data/zip-centroids.ts` (approximate for dev). If your sheet contains ZIPs not in that file, they will be listed in the header. Add missing ZIPs with accurate coordinates and refresh.
+Expected columns:
+
+- Book Recipients: `zipcode`, `# of books received`
+- Volunteers: `zipcode`, `# of volunteers`
+- Schools: `zipcode`, `# of schools` (or one row per school depending on export)
